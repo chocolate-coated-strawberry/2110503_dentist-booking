@@ -15,7 +15,7 @@ const swaggerUI = require('swagger-ui-express');
 const connectDB = require('./config/db');
 
 // Route files
-// const auth = require('./routes/auth');
+const auth = require('./routes/auth');
 // const dentists = require('./routes/dentists');
 // const bookings = require('./routes/bookings');
 
@@ -68,7 +68,7 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
 // mount routers
-// app.use('/api/v1/auth', auth);
+app.use('/api/v1/auth', auth);
 // app.use('/api/v1/dentists', dentists);
 // app.use('/api/v1/bookings', bookings);
 
