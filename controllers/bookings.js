@@ -1,9 +1,14 @@
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Dentist = require('../models/Dentist');
 
 const DENTIST_FIELDS = 'name yearsOfExperience areaOfExpertise';
 
-// Map known write errors to 4xx; everything else stays 500
+// Reject malformed ids before they reach a query (only 24-hex strings / ObjectIds)
+const invalidId = (res, id) => res.status(400).json({ success: false, message: `Invalid id: ${id}` });
+const isId = (id) => mongoose.isObjectIdOrHexString(id);
+
+// Map known errors to 4xx; everything else stays 500
 const writeError = (err, res, fallback) => {
     if (err.code === 11000) {
         return res.status(409).json({ success: false, message: 'This dentist is already booked at that time' });
@@ -19,6 +24,8 @@ const writeError = (err, res, fallback) => {
 //@route    GET /api/v1/bookings
 //@access   Private
 exports.getBookings = async (req, res, next) => {
+    if (req.params.dentistId && !isId(req.params.dentistId)) return invalidId(res, req.params.dentistId);
+
     let query;
 
     if (req.user.role !== 'admin') {
@@ -48,8 +55,7 @@ exports.getBookings = async (req, res, next) => {
             data: bookings
         });
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({ success: false, message: 'Cannot find bookings' });
+        return writeError(err, res, 'Cannot find bookings');
     }
 };
 
@@ -57,6 +63,8 @@ exports.getBookings = async (req, res, next) => {
 //@route    GET /api/v1/bookings/:id
 //@access   Private
 exports.getBooking = async (req, res, next) => {
+    if (!isId(req.params.id)) return invalidId(res, req.params.id);
+
     try {
         const booking = await Booking.findById(req.params.id).populate({
             path: 'dentist',
@@ -72,7 +80,7 @@ exports.getBooking = async (req, res, next) => {
 
         // Make sure user is the booking owner
         if (booking.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
                 message: `User ${req.user.id} is not authorized to view this booking`
             });
@@ -83,8 +91,7 @@ exports.getBooking = async (req, res, next) => {
             data: booking
         });
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({ success: false, message: 'Cannot find booking' });
+        return writeError(err, res, 'Cannot find booking');
     }
 };
 
@@ -95,6 +102,11 @@ exports.addBooking = async (req, res, next) => {
     try {
         req.body.user = req.user.id;
         req.body.dentist = req.params.dentistId || req.body.dentist;
+
+        if (!req.body.dentist) {
+            return res.status(400).json({ success: false, message: 'Please add a dentist' });
+        }
+        if (!isId(req.body.dentist)) return invalidId(res, req.body.dentist);
 
         // Non-admin users can only have ONE booking
         const existedBooking = await Booking.findOne({ user: req.user.id });
@@ -143,6 +155,8 @@ exports.addBooking = async (req, res, next) => {
 //@route    PUT /api/v1/bookings/:id
 //@access   Private
 exports.updateBooking = async (req, res, next) => {
+    if (!isId(req.params.id)) return invalidId(res, req.params.id);
+
     try {
         let booking = await Booking.findById(req.params.id);
 
@@ -155,7 +169,7 @@ exports.updateBooking = async (req, res, next) => {
 
         // Make sure user is the booking owner
         if (booking.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
                 message: `User ${req.user.id} is not authorized to update this booking`
             });
@@ -166,7 +180,8 @@ exports.updateBooking = async (req, res, next) => {
         if (req.body.bookingDate !== undefined) update.bookingDate = req.body.bookingDate;
         if (req.body.dentist !== undefined) update.dentist = req.body.dentist;
 
-        if (update.dentist) {
+        if (update.dentist !== undefined) {
+            if (!isId(update.dentist)) return invalidId(res, update.dentist);
             const dentist = await Dentist.findById(update.dentist);
             if (!dentist) {
                 return res.status(404).json({
@@ -209,6 +224,8 @@ exports.updateBooking = async (req, res, next) => {
 //@route    DELETE /api/v1/bookings/:id
 //@access   Private
 exports.deleteBooking = async (req, res, next) => {
+    if (!isId(req.params.id)) return invalidId(res, req.params.id);
+
     try {
         const booking = await Booking.findById(req.params.id);
 
@@ -221,7 +238,7 @@ exports.deleteBooking = async (req, res, next) => {
 
         // Make sure user is the booking owner
         if (booking.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
                 message: `User ${req.user.id} is not authorized to delete this booking`
             });
@@ -234,7 +251,6 @@ exports.deleteBooking = async (req, res, next) => {
             data: {}
         });
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({ success: false, message: 'Cannot delete booking' });
+        return writeError(err, res, 'Cannot delete booking');
     }
 };
