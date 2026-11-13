@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Dentist = require('../models/Dentist');
+const Booking = require('../models/Booking');
 
 // Same id guard as controllers/bookings.js: only 24-hex strings / ObjectIds
 const isId = (id) => mongoose.isObjectIdOrHexString(id);
@@ -124,5 +125,88 @@ exports.getDentist = async (req, res, next) => {
     } catch (err) {
         console.log(err);
         return res.status(500).json({ success: false, message: 'Cannot find dentist' });
+    }
+};
+
+// Only these fields are writable from the request body
+const WRITABLE_FIELDS = ['name', 'yearsOfExperience', 'areaOfExpertise'];
+const pickWritable = (body = {}) =>
+    Object.fromEntries(WRITABLE_FIELDS.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
+
+// Map known write errors to 400; everything else stays 500
+const writeError = (err, res, fallback) => {
+    if (err.code === 11000) {
+        return res.status(400).json({ success: false, message: 'A dentist with this name already exists' });
+    }
+    if (err.name === 'ValidationError') {
+        const message = Object.values(err.errors).map((e) => e.message).join(', ');
+        return res.status(400).json({ success: false, message });
+    }
+    if (err.name === 'CastError') {
+        return res.status(400).json({ success: false, message: `Invalid value for ${err.path}` });
+    }
+    console.log(err);
+    return res.status(500).json({ success: false, message: fallback });
+};
+
+//@desc     Create a dentist
+//@route    POST /api/v1/dentists
+//@access   Private (admin)
+exports.createDentist = async (req, res, next) => {
+    try {
+        const dentist = await Dentist.create(pickWritable(req.body));
+        res.status(201).json({ success: true, data: dentist });
+    } catch (err) {
+        return writeError(err, res, 'Cannot create dentist');
+    }
+};
+
+//@desc     Update a dentist
+//@route    PUT /api/v1/dentists/:id
+//@access   Private (admin)
+exports.updateDentist = async (req, res, next) => {
+    if (!isId(req.params.id)) {
+        return res.status(400).json({ success: false, message: `Invalid id: ${req.params.id}` });
+    }
+
+    try {
+        const dentist = await Dentist.findByIdAndUpdate(req.params.id, pickWritable(req.body), {
+            new: true,
+            runValidators: true
+        });
+
+        if (!dentist) {
+            return res.status(404).json({ success: false, message: `No dentist with the id of ${req.params.id}` });
+        }
+
+        res.status(200).json({ success: true, data: dentist });
+    } catch (err) {
+        return writeError(err, res, 'Cannot update dentist');
+    }
+};
+
+//@desc     Delete a dentist and all of its bookings
+//@route    DELETE /api/v1/dentists/:id
+//@access   Private (admin)
+exports.deleteDentist = async (req, res, next) => {
+    if (!isId(req.params.id)) {
+        return res.status(400).json({ success: false, message: `Invalid id: ${req.params.id}` });
+    }
+
+    try {
+        const dentist = await Dentist.findById(req.params.id);
+
+        if (!dentist) {
+            return res.status(404).json({ success: false, message: `No dentist with the id of ${req.params.id}` });
+        }
+
+        // Cascade in the controller (same approach as A10's deleteHospital, no model hook)
+        await Booking.deleteMany({ dentist: req.params.id });
+        await dentist.deleteOne();
+
+        res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ success: false, message: 'Cannot delete dentist' });
     }
 };
