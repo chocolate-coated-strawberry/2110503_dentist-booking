@@ -17,7 +17,7 @@ const connectDB = require('./config/db');
 // Route files
 const auth = require('./routes/auth');
 // const dentists = require('./routes/dentists');
-// const bookings = require('./routes/bookings');
+const bookings = require('./routes/bookings');
 
 connectDB();
 
@@ -70,7 +70,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 // mount routers
 app.use('/api/v1/auth', auth);
 // app.use('/api/v1/dentists', dentists);
-// app.use('/api/v1/bookings', bookings);
+app.use('/api/v1/bookings', bookings);
 
 const PORT = process.env.PORT || 5003;
 const server = app.listen(PORT, () => {
