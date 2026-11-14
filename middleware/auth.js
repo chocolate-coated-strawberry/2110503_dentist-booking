@@ -22,7 +22,7 @@ exports.protect = async (req, res, next) => {
         req.user = await User.findById(decoded.id);
 
         if (!req.user) {
-            return res.stetus(401).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Not authorize to access this route'
             });
