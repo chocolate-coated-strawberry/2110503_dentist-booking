@@ -96,36 +96,40 @@ const { protect, authorization } = require('../middleware/auth');
  *             type: string
  *           description: Exact match on area of expertise
  *         - in: query
- *           name: yearsOfExperience
- *           style: deepObject
- *           explode: true
- *           description: "Comparison on years of experience, e.g. yearsOfExperience[gte]=5. The 'in' operator takes a comma-separated list."
+ *           name: "yearsOfExperience[gt]"
  *           schema:
- *             type: object
- *             properties:
- *               gt:
- *                 type: number
- *               gte:
- *                 type: number
- *               lt:
- *                 type: number
- *               lte:
- *                 type: number
- *               in:
- *                 type: string
- *                 example: "5,10"
+ *             type: number
+ *           description: "Years of experience greater than this value"
+ *         - in: query
+ *           name: "yearsOfExperience[gte]"
+ *           schema:
+ *             type: number
+ *           description: "Years of experience greater than or equal to this value"
+ *         - in: query
+ *           name: "yearsOfExperience[lt]"
+ *           schema:
+ *             type: number
+ *           description: "Years of experience less than this value"
+ *         - in: query
+ *           name: "yearsOfExperience[lte]"
+ *           schema:
+ *             type: number
+ *           description: "Years of experience less than or equal to this value"
+ *         - in: query
+ *           name: "yearsOfExperience[in]"
+ *           schema:
+ *             type: string
+ *           description: "Comma-separated list of exact values, for example 5,10"
  *         - in: query
  *           name: select
  *           schema:
  *             type: string
- *             example: name,areaOfExpertise
- *           description: Comma-separated fields to return
+ *           description: "Comma-separated fields to return, for example name,areaOfExpertise"
  *         - in: query
  *           name: sort
  *           schema:
  *             type: string
- *             example: -yearsOfExperience,name
- *           description: Comma-separated fields, prefix with - for descending
+ *           description: "Comma-separated fields, prefix with - for descending, for example -yearsOfExperience,name"
  *         - in: query
  *           name: page
  *           schema:
