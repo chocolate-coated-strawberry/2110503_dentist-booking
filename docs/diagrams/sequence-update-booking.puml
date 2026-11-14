@@ -1,0 +1,39 @@
+@startuml Manage Booking (PUT)
+
+header Dentist Booking Sequence Diagram
+title "Manage Booking (PUT)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:bookings" as routerBookings
+participant "<<middleware>>\n:auth" as middlewareAuth
+participant "<<controllers>>\n:bookings" as controllersBookings
+participant "<<model>>\n:Dentist" as modelDentist
+participant "<<model>>\n:Booking" as modelBooking
+database "<<MongoDB>>\n:bookings" as BookingsDatabase
+
+client->server ++:req.put('/api/v1/bookings/:id')
+server->routerBookings ++:app.use('/api/v1/bookings',bookings)
+routerBookings->middlewareAuth ++:protect(), authorization('admin','user')
+middlewareAuth->controllersBookings ++:updateBooking()
+controllersBookings->modelBooking ++:findById(id)
+controllersBookings<--modelBooking --:booking (null -> 404, not owner -> 403)
+controllersBookings->modelDentist ++:findById(dentist) if changed
+controllersBookings<--modelDentist --:dentist (null -> 404)
+controllersBookings->modelBooking ++:findOne({_id != id, dentist, bookingDate})
+controllersBookings<--modelBooking --:slot taken -> 409
+controllersBookings->modelBooking ++:findByIdAndUpdate(id, {bookingDate, dentist})
+modelBooking->BookingsDatabase ++:BookingSchema
+BookingsDatabase-->modelBooking --:booking
+controllersBookings<--modelBooking --:booking
+controllersBookings->client --:response (200)
+deactivate middlewareAuth
+deactivate routerBookings
+deactivate server
+
+note over client, middlewareAuth
+  Only bookingDate and dentist can change (user is never reassigned).
+  runValidators: future + 15-minute slot, else 400
+end note
+
+@enduml
