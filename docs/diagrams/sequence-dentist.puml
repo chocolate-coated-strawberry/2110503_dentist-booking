@@ -1,0 +1,81 @@
+@startuml Manage Dentist
+autoactivate on
+
+header Dentist Booking Sequence Diagram
+title "Manage Dentist (POST, PUT, DELETE - admin only)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:dentists" as routerDentists
+participant "<<middleware>>\n:auth" as middlewareAuth
+participant "<<controllers>>\n:dentists" as controllersDentists
+participant "<<model>>\n:User" as modelUser
+participant "<<model>>\n:Dentist" as modelDentist
+participant "<<model>>\n:Booking" as modelBooking
+database "<<MongoDB>>\n:dentists" as DentistsDatabase
+
+== Create (POST) ==
+client -> server : req.post('/api/v1/dentists')
+server -> routerDentists : app.use('/api/v1/dentists', dentists)
+routerDentists -> middlewareAuth : protect()
+middlewareAuth -> modelUser : findById(decoded.id)
+return user
+return
+routerDentists -> middlewareAuth : authorization('admin')
+return
+routerDentists -> controllersDentists : createDentist()
+controllersDentists -> modelDentist : create(only name, yearsOfExperience, areaOfExpertise)
+modelDentist -> DentistsDatabase : insert dentist
+return dentist
+return dentist
+return response (201)
+return
+return
+note over client, controllersDentists
+  Errors: 401 no token / invalid token, 403 role is not admin,
+  400 duplicate name (E11000) or validation error
+end note
+
+== Update (PUT) ==
+client -> server : req.put('/api/v1/dentists/:id')
+server -> routerDentists : app.use('/api/v1/dentists', dentists)
+routerDentists -> middlewareAuth : protect(), authorization('admin')
+return
+routerDentists -> controllersDentists : updateDentist()
+controllersDentists -> modelDentist : findByIdAndUpdate(id, whitelisted fields, runValidators)
+modelDentist -> DentistsDatabase : update dentist
+return dentist (or null)
+return dentist (or null)
+return response (200)
+return
+return
+note over client, controllersDentists
+  Errors: 400 malformed id / duplicate name / validation error,
+  404 no dentist with that id
+end note
+
+== Delete (DELETE) ==
+client -> server : req.delete('/api/v1/dentists/:id')
+server -> routerDentists : app.use('/api/v1/dentists', dentists)
+routerDentists -> middlewareAuth : protect(), authorization('admin')
+return
+routerDentists -> controllersDentists : deleteDentist()
+controllersDentists -> modelDentist : findById(id)
+return dentist (or null)
+controllersDentists -> modelBooking : deleteMany({dentist: id})
+note right of modelBooking
+  cascade: the bookings of this dentist are removed first
+end note
+return
+controllersDentists -> modelDentist : deleteOne()
+modelDentist -> DentistsDatabase : delete dentist
+return
+return
+return response (200)
+return
+return
+note over client, controllersDentists
+  Errors: 400 malformed id, 404 no dentist with that id
+end note
+
+@enduml
