@@ -471,7 +471,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"success is false\", () => pm.expect(pm.response.json().success).to.eql(false));"
+                  "// a 400 from the one-booking rule would also pass a status-only check; assert it is the date validator",
+                  "pm.test(\"rejected by the date rule\", () => pm.expect(pm.response.json().message).to.include(\"in the future on a 15-minute slot\"));"
                 ]
               }
             }
@@ -515,7 +516,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"success is false\", () => pm.expect(pm.response.json().success).to.eql(false));"
+                  "// a 400 from the one-booking rule would also pass a status-only check; assert it is the date validator",
+                  "pm.test(\"rejected by the date rule\", () => pm.expect(pm.response.json().message).to.include(\"in the future on a 15-minute slot\"));"
                 ]
               }
             }

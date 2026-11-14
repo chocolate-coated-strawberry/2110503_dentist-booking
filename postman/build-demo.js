@@ -1,6 +1,7 @@
 // Builds the presentation demo collection: the requests of A and B, regrouped into the
 // course's step order (1 Register ... 12 Admin delete). A and B stay the source of truth.
-// Run after editing A or B: npm run build:demo
+// npm test rebuilds it first (pretest), so a test run never uses a stale demo.
+// After editing A or B, commit the regenerated demo file too.
 const fs = require('fs');
 const path = require('path');
 
