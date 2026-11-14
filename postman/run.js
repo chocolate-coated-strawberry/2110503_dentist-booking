@@ -4,8 +4,9 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'config', 'config.env'), quiet: true });
 const newman = require('newman');
 
-// A = auth + dentists, B = bookings + double-booking; run in this order
-const COLLECTIONS = ['dentist-booking-A', 'dentist-booking-B'];
+// Default: the presentation demo (steps 1-12 in course order).
+// npm run test:full runs A (auth + dentists) then B (bookings + double-booking) instead.
+const COLLECTIONS = process.argv.length > 2 ? process.argv.slice(2) : ['dentist-booking-demo'];
 
 const run = (name) => new Promise((resolve, reject) => {
     newman.run({
