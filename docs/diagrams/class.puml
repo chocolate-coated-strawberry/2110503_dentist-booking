@@ -1,0 +1,68 @@
+@startuml Dentist Booking Class Diagram
+left to right direction
+package "DentistBooking"{
+    class "<<Application>>\nDentistBookingService" as DentistBookingService{}
+
+    class "<<Resource>>\nAuth" as ResourceAuth{
+        <<POST>> +register(): User
+        <<POST>> +login(): token
+        <<GET>> +getMe(): User
+        <<GET>> +logout(): void
+    }
+
+    class "<<Representation>>\nUser" as RepresentationUser{
+        -name
+        -tel
+        -email
+        -role
+        -password
+        -createdAt
+    }
+
+    class "<<Resource>>\nDentists" as ResourceDentists{
+        <<GET>> +getDentists(): Dentist
+        <<POST>> +createDentist(): Dentist
+    }
+
+    class "<<Resource>>\nDentist" as ResourceDentist{
+        <<GET>> +getDentist(): Dentist
+        <<PUT>> +updateDentist(): Dentist
+        <<DELETE>> +deleteDentist(): void
+    }
+
+    class "<<Representation>>\nDentist" as RepresentationDentist{
+        -name
+        -yearsOfExperience
+        -areaOfExpertise
+    }
+
+    class "<<Resource>>\nBookings" as ResourceBookings{
+        <<GET>> +getBookings(): Booking
+        <<POST>> +addBooking(): Booking
+    }
+
+    class "<<Resource>>\nBooking" as ResourceBooking{
+        <<GET>> +getBooking(): Booking
+        <<PUT>> +updateBooking(): Booking
+        <<DELETE>> +deleteBooking(): void
+    }
+
+    class "<<Representation>>\nBooking" as RepresentationBooking{
+        -bookingDate
+        -user
+        -dentist
+        -createdAt
+    }
+}
+
+DentistBookingService ..> ResourceAuth:"/auth\n<<Path>>"
+ResourceAuth ..> RepresentationUser:"<<use>>"
+DentistBookingService ..> ResourceDentists:"/dentists\n<<Path>>"
+ResourceDentists ..> ResourceDentist:"/{dentistId}\n<<Path>>"
+ResourceDentist ..> RepresentationDentist:"<<use>>"
+ResourceDentist .[norank].> ResourceBookings:"/bookings\n<<Path>>"
+DentistBookingService ..> ResourceBookings:"/bookings\n<<Path>>"
+ResourceBookings ..> ResourceBooking:"/{bookingId}\n<<Path>>"
+ResourceBooking ..> RepresentationBooking:"<<use>>"
+
+@enduml

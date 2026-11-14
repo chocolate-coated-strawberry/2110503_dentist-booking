@@ -5,7 +5,10 @@
   "main": "server.js",
   "repository": { "type": "git", "url": "git+ssh://git@github.com/chocolate-coated-strawberry/2110503_dentist-booking.git" },
   "scripts": {
+    "pretest": "node postman/build-demo.js",
     "test": "node postman/run.js",
+    "test:full": "node postman/run.js dentist-booking-A dentist-booking-B",
+    "build:demo": "node postman/build-demo.js",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node seeder.js"

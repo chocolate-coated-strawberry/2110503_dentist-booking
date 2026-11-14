@@ -1,0 +1,43 @@
+@startuml Manage Booking (POST)
+
+header Dentist Booking Sequence Diagram
+title "Manage Booking (POST)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:dentists" as routerDentists
+participant "<<router>>\n:bookings" as routerBookings
+participant "<<middleware>>\n:auth" as middlewareAuth
+participant "<<controllers>>\n:bookings" as controllersBookings
+participant "<<model>>\n:Dentist" as modelDentist
+participant "<<model>>\n:Booking" as modelBooking
+database "<<MongoDB>>\n:bookings" as BookingsDatabase
+
+client->server ++:req.post('/api/v1/dentists/:dentistId/bookings')
+server->routerDentists ++:app.use('/api/v1/dentists',dentists)
+routerDentists->routerBookings ++:router.use('/:dentistId/bookings',bookingRouter)
+routerBookings->middlewareAuth ++:protect(), authorization('admin','user')
+middlewareAuth->controllersBookings ++:addBooking()
+controllersBookings->modelBooking ++:findOne({user})
+controllersBookings<--modelBooking --:existing booking (non-admin -> 400)
+controllersBookings->modelDentist ++:findById(dentistId)
+controllersBookings<--modelDentist --:dentist (null -> 404)
+controllersBookings->modelBooking ++:findOne({dentist, bookingDate})
+controllersBookings<--modelBooking --:slot taken -> 409
+controllersBookings->modelBooking ++:create({bookingDate, user, dentist})
+modelBooking->BookingsDatabase ++:BookingSchema
+BookingsDatabase-->modelBooking --:booking
+controllersBookings<--modelBooking --:booking
+controllersBookings->client --:response (201)
+deactivate middlewareAuth
+deactivate routerBookings
+deactivate routerDentists
+deactivate server
+
+note over client, middlewareAuth
+  Errors: 401 no token, 403 wrong role,
+  400 invalid id / past or off-slot time,
+  409 duplicate key (E11000)
+end note
+
+@enduml

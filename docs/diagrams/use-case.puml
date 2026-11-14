@@ -1,0 +1,24 @@
+@startuml Dentist Booking Use Case
+left to right direction
+skinparam actorStyle awesome
+actor "User" as user
+actor "Admin" as admin
+rectangle "Dentist Booking System" {
+    usecase "Register" as register
+    usecase "Log in /\nLog out" as login
+    usecase "View\nDentists" as viewDentists
+    usecase "Manage\nBooking" as manageBooking
+    usecase "Manage\nDentist" as manageDentist
+}
+user -- register
+user -- login
+user -- viewDentists
+user -- manageBooking
+login -- admin
+manageBooking -- admin
+manageDentist -- admin
+note bottom of manageBooking
+  User: own booking only (max ONE)
+  Admin: any booking
+end note
+@enduml
