@@ -547,7 +547,7 @@
                 ""
               ]
             },
-            "description": "Fetch all hospitals from database."
+            "description": "Fetch all dentists from database."
           },
           "response": []
         },
@@ -584,7 +584,7 @@
                 }
               ]
             },
-            "description": "Fetch all hospitals from database."
+            "description": "Fetch dentists with 10 or more years of experience."
           },
           "response": []
         },
@@ -621,7 +621,7 @@
                 }
               ]
             },
-            "description": "Fetch all hospitals from database."
+            "description": "`Fetch dentists with an unsupported filter operator (expects 400).`"
           },
           "response": []
         },
@@ -1316,7 +1316,7 @@
           "response": []
         }
       ],
-      "description": "Hospital CRUD functionality"
+      "description": "Dentist CRUD functionality"
     }
   ],
   "event": [
