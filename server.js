@@ -60,7 +60,11 @@ const swaggerOptions = {
             version: '1.0.0',
             description: '2110503 Term Project Dentist Booking REST API'
         },
-        servers: [{ url: `http://localhost:${process.env.PORT || 5003}/api/v1` }]
+        servers: [{ url: `http://localhost:${process.env.PORT || 5003}/api/v1` }],
+        // "Authorize" button in Swagger UI: paste the token from /auth/login
+        components: {
+            securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } }
+        }
     },
     apis: ['./routes/*.js']
 };
