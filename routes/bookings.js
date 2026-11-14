@@ -114,25 +114,25 @@ const router = express.Router({ mergeParams: true });
  *       description: The dentist id (24-character hex)
  *   responses:
  *     BadRequest:
- *       description: Invalid id, missing or invalid field, or the user already has a booking
+ *       description: Invalid id, missing or invalid field, or a rule was violated (for example one booking per user)
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Error'
  *     Unauthorized:
- *       description: Missing or invalid token
+ *       description: Missing, invalid or expired token
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Error'
  *     Forbidden:
- *       description: The user is not the owner of this booking (and not an admin)
+ *       description: Not allowed (admin only, or not the owner of the resource)
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Error'
  *     NotFound:
- *       description: No booking or dentist with that id
+ *       description: No resource (dentist or booking) with that id
  *       content:
  *         application/json:
  *           schema:
