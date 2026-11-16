@@ -11,12 +11,12 @@ package "DentistBooking"{
     }
 
     class "<<Representation>>\nUser" as RepresentationUser{
-        -name
-        -tel
-        -email
-        -role
-        -password
-        -createdAt
+        -name : string
+        -tel : string
+        -email : string
+        -role : string
+        {field} -password : string (hashed)
+        -createdAt : date
     }
 
     class "<<Resource>>\nDentists" as ResourceDentists{
@@ -31,9 +31,9 @@ package "DentistBooking"{
     }
 
     class "<<Representation>>\nDentist" as RepresentationDentist{
-        -name
-        -yearsOfExperience
-        -areaOfExpertise
+        -name : string
+        -yearsOfExperience : number
+        -areaOfExpertise : string
     }
 
     class "<<Resource>>\nBookings" as ResourceBookings{
@@ -48,10 +48,10 @@ package "DentistBooking"{
     }
 
     class "<<Representation>>\nBooking" as RepresentationBooking{
-        -bookingDate
-        -user
-        -dentist
-        -createdAt
+        {field} -bookingDate : date (future, 15-min slot)
+        {field} -user : ObjectId (User)
+        {field} -dentist : ObjectId (Dentist)
+        -createdAt : date
     }
 }
 
